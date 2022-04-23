@@ -10,6 +10,7 @@ import dateutil.parser
 import time
 from dotenv import dotenv_values 
 import sys
+import datetime
 sys.path.append('/Users/giovanniflores/Development/comp578/db')
 from mongo_factory import getMongo, getAuthorIDs, insertTweets
 
@@ -23,16 +24,17 @@ def create_headers(bearer_token):
 
 def create_url(keyword, start_date, end_date, max_results=10):
     
-    search_url = "https://api.twitter.com/2/tweets/search/recent"
+    search_url = "https://api.twitter.com/2/tweets/search/all"
 
     query_params = {
         'query' : keyword,
+        'start_time' : start_date, 
+        'end_time' : end_date,
         'max_results' : max_results,
         'expansions' : 'author_id,geo.place_id',
         'tweet.fields' : 'public_metrics',
     }
 
-    # query_params = {'query' : '(from:faggot -is:retweet) OR #russiantank', 'tweet.fields': 'author_id, public_metrics'}
 
     return (search_url, query_params);
 
@@ -51,8 +53,10 @@ def connect_to_endpoint(url, headers, params, next_token=None):
 bearer_token = auth()
 headers = create_headers(bearer_token=bearer_token)
 keyword = "#elon lang:en"
-start_time = "2021-03-01T00:00:00:00.000Z"
-end_time = "2021-03-31T00:00:00.000Z"
+# start_time = "2021-03-01T00:00:00:00.000Z"
+start_time = datetime.datetime(2022, 3, 1).astimezone().isoformat()
+end_time = datetime.datetime(2022, 3, 31).astimezone().isoformat()
+# end_time = "2021-03-31T00:00:00.000Z"
 max_results = 10 
 url = create_url(keyword, start_time, end_time, max_results)
 json_response = connect_to_endpoint(url[0], headers, url[1])
