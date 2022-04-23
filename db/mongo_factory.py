@@ -5,7 +5,6 @@ from dotenv import dotenv_values
 config = dotenv_values()
 
 
-# def get_server_info():
 async def get_server_info():
    conn_str = config["RUS_DB_URL"]
    return conn_str
@@ -16,6 +15,19 @@ async def getMongo():
    comp578 = myclient["comp578"]
    twitter_data = comp578["Tweets"]
    return twitter_data 
+
+async def insertTweets(data):
+   mongoDB = await getMongo()
+   for tweet in data:
+      mongoDB.insert_one(tweet)
+
+   
+
+async def getAuthorIDs():
+   mongoDB = await getMongo()
+   docs = mongoDB.find({
+   }, {"_id": 0, "author_id": 1})
+   return docs
 
 
 
