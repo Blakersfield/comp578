@@ -1,8 +1,9 @@
-import asyncio
 import pymongo
 from dotenv import dotenv_values 
 
+
 config = dotenv_values()
+
 
 # def get_server_info():
 async def get_server_info():
@@ -16,12 +17,9 @@ async def getMongo():
    twitter_data = comp578["Tweets"]
    return twitter_data 
 
-async def main():
-   mongoDB = await getMongo()
-
-   
 
 
 
-asyncio.run(main())
+
+
 
