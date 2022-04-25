@@ -10,6 +10,7 @@ data = pd.read_csv('test.csv')
 temp = data
 print(type(temp))
 
+
 tempt = []
 for i in range(len(temp)):
     tempt.append(str(temp.iloc[i][0]).split(' '))
