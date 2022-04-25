@@ -1,5 +1,5 @@
 # comp578
-Twitter dataand mine project for comp578
+Twitter data mine project for comp578
 
 
 Credits:
