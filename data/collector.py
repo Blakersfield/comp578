@@ -23,10 +23,10 @@ def auth():
 def create_headers(bearer_token):
     return {"Authorization" : "Bearer {}".format(bearer_token), "User-Agent" : "v2RecentSearchPython"}
 
-def create_url(id):
+def create_url(ids):
     
     tweet_fields = "tweet.fields=public_metrics,author_id"
-    url = "https://api.twitter.com/2/tweets?ids={}&{}".format(id, tweet_fields)
+    url = "https://api.twitter.com/2/tweets?ids={}&{}".format(ids, tweet_fields)
 
     return url
 
@@ -38,15 +38,26 @@ def connect_to_endpoint(url, headers):
     
     return response.json()
 
+def chink(lst, n):
+    ''' 
+    partition evenly sized n-sized chinks
+    '''
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
 
 async def main():
     mongoDB = await getMongo()
     ids = pull_from_file()
     bearer_token = auth()
     headers = create_headers(bearer_token=bearer_token)
-    
-    for id in ids:
-        url = create_url(id)
+    chinked_ids = chink(ids, 100)
+    count = 0
+    for id_partition in chinked_ids:
+        ids_stringified = ','.join(id_partition)
+        if count == config["TWEET_CAP"]:
+            break
+        url = create_url(ids_stringified)
+        print('\n\n\n\n\nREQUEST MADE\n\n\n\n')
         json_response = connect_to_endpoint(url, headers)
         if json_response.get('data') is not None:
             data = json_response['data']
@@ -57,6 +68,9 @@ async def main():
                     mongoDB.update_one({'id' : tweet_id},{'$set' : datum}, upsert=True)
                 else:
                     print(f'DID NOT UPSERT TWEET WITH ID {tweet_id}')
+        count += 1
+
+
                     
 asyncio.run(main())
 
