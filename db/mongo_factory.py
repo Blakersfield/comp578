@@ -16,11 +16,6 @@ async def getMongo():
    twitter_data = comp578["Tweets"]
    return twitter_data 
 
-async def insertTweets(data):
-   mongoDB = await getMongo()
-   for tweet in data:
-      mongoDB.insert_one(tweet)
-
    
 
 async def getAuthorIDs():

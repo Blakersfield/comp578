@@ -10,8 +10,10 @@ import dateutil.parser
 import time
 from dotenv import dotenv_values 
 import sys
+import datetime
 sys.path.append('/Users/giovanniflores/Development/comp578/db')
-from mongo_factory import getMongo, getAuthorIDs, insertTweets
+from mongo_factory import getMongo, getAuthorIDs 
+from tweet_puller import pull_from_file 
 
 config = dotenv_values()
 
@@ -21,54 +23,40 @@ def auth():
 def create_headers(bearer_token):
     return {"Authorization" : "Bearer {}".format(bearer_token), "User-Agent" : "v2RecentSearchPython"}
 
-def create_url(keyword, start_date, end_date, max_results=10):
+def create_url(id):
     
-    search_url = "https://api.twitter.com/2/tweets/search/recent"
+    tweet_fields = "tweet.fields=public_metrics,author_id"
+    url = "https://api.twitter.com/2/tweets?ids={}&{}".format(id, tweet_fields)
 
-    query_params = {
-        'query' : keyword,
-        'max_results' : max_results,
-        'expansions' : 'author_id,geo.place_id',
-        'tweet.fields' : 'public_metrics',
-    }
-
-    # query_params = {'query' : '(from:faggot -is:retweet) OR #russiantank', 'tweet.fields': 'author_id, public_metrics'}
-
-    return (search_url, query_params);
+    return url
 
 
-def connect_to_endpoint(url, headers, params, next_token=None):
-    params['next_token'] = next_token
-    response = requests.get(url, headers=headers, params=params)
-    print("Endpoint Response Code: " + str(response.status_code))
+def connect_to_endpoint(url, headers):
+    response = requests.get(url, headers=headers)
     if response.status_code != 200:
         raise Exception(response.status_code, response.text)
     
     return response.json()
 
 
-
-bearer_token = auth()
-headers = create_headers(bearer_token=bearer_token)
-keyword = "#elon lang:en"
-start_time = "2021-03-01T00:00:00:00.000Z"
-end_time = "2021-03-31T00:00:00.000Z"
-max_results = 10 
-url = create_url(keyword, start_time, end_time, max_results)
-json_response = connect_to_endpoint(url[0], headers, url[1])
-data = json_response['data']
-print(data)
-
-
-
-
-# async def main():
-#     await insertTweets(data)
-    # docs = await getAuthorIDs()
-    # for doc in docs:
-    #     author_id = doc['author_id']
-    #     print(author_id)
-
+async def main():
+    mongoDB = await getMongo()
+    ids = pull_from_file()
+    bearer_token = auth()
+    headers = create_headers(bearer_token=bearer_token)
     
-# asyncio.run(main())
+    for id in ids:
+        url = create_url(id)
+        json_response = connect_to_endpoint(url, headers)
+        if json_response.get('data') is not None:
+            data = json_response['data']
+            for datum in data:
+                tweet_id = datum['id']
+                if not datum['text'].startswith('RT'):
+                    print(f'UPSERTING TWEET WITH ID {tweet_id}')
+                    mongoDB.update_one({'id' : tweet_id},{'$set' : datum}, upsert=True)
+                else:
+                    print(f'DID NOT UPSERT TWEET WITH ID {tweet_id}')
+                    
+asyncio.run(main())
 
