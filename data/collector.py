@@ -51,13 +51,15 @@ async def main():
     bearer_token = auth()
     headers = create_headers(bearer_token=bearer_token)
     chinked_ids = chink(ids, 100)
-    count = 0
+    count = 1
+    REQUEST_CAP = 11
     for id_partition in chinked_ids:
         ids_stringified = ','.join(id_partition)
-        if count == config["TWEET_CAP"]:
+        if count == REQUEST_CAP:
             break
         url = create_url(ids_stringified)
-        print('\n\n\n\n\nREQUEST MADE\n\n\n\n')
+        print(f'\n\n\n\n\nREQUEST #{count} MADE\n\n\n\n')
+        time.sleep(1)
         json_response = connect_to_endpoint(url, headers)
         if json_response.get('data') is not None:
             data = json_response['data']
