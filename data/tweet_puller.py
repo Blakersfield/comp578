@@ -1,14 +1,17 @@
 import csv
-import time
+from dotenv import dotenv_values
+
+config = dotenv_values()
 
 def pull_from_file():
     tweetIds = []
-    with open('/Users/giovanniflores/Development/russo_ukraine_dataset/2022-02-22/2022-02-22_1.csv') as csv_file:
+    FILE_PATH = config['FILE_PATH']
+    with open(FILE_PATH) as csv_file:
+        print(f'opening {FILE_PATH}')
         csv_reader = csv.reader(csv_file, delimiter='\n')
         for row in csv_reader:
             tweetIds.append(row[0])
     return tweetIds
 
 
- # get tweet information by id
             
