@@ -15,6 +15,7 @@ sys.path.append('/Users/giovanniflores/Development/comp578/db')
 from mongo_factory import getMongo, getAuthorIDs, get_tweet_ids
 from find_date import get_time_from_tweet
 from tweet_puller import file_collector 
+import time
 
 config = dotenv_values()
 
@@ -56,11 +57,9 @@ async def main():
     chinked_ids = chink(ids, 100)
 
     count = 1
-    REQUEST_CAP = 2 
+    start = time.time()
     for id_partition in chinked_ids:
         ids_stringified = ','.join(id_partition)
-        if count == REQUEST_CAP:
-            break
         url = create_url(ids_stringified)
         print(f'\n\n\n\n\nREQUEST #{count} MADE\n\n\n\n')
         time.sleep(1)
@@ -77,6 +76,9 @@ async def main():
                 else:
                     print(f'DID NOT UPSERT TWEET WITH ID {tweet_id}')
         count += 1
+    
+    end = time.time()
+    print(f'total time elapsed: {str(end - start)}')
 
 
                     
