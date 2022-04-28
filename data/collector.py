@@ -14,7 +14,7 @@ import datetime
 sys.path.append('/Users/giovanniflores/Development/comp578/db')
 from mongo_factory import getMongo, getAuthorIDs, get_tweet_ids
 from find_date import get_time_from_tweet
-from tweet_puller import pull_from_file 
+from tweet_puller import file_collector 
 
 config = dotenv_values()
 
@@ -46,14 +46,17 @@ def chink(lst, n):
     for i in range(0, len(lst), n):
         yield lst[i:i + n]
 
+
+
 async def main():
     mongoDB = await getMongo()
-    ids = pull_from_file()
+    ids = file_collector()
     bearer_token = auth()
     headers = create_headers(bearer_token=bearer_token)
     chinked_ids = chink(ids, 100)
+
     count = 1
-    REQUEST_CAP = 11
+    REQUEST_CAP = 2 
     for id_partition in chinked_ids:
         ids_stringified = ','.join(id_partition)
         if count == REQUEST_CAP:
@@ -80,5 +83,5 @@ async def main():
 async def refactor(): 
     await get_tweet_ids()
 
-asyncio.run(refactor())
+asyncio.run(main())
 
