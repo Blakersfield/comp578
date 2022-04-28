@@ -9,15 +9,15 @@ import datetime
 import dateutil.parser
 import time
 from dotenv import dotenv_values 
+config = dotenv_values()
 import sys
 import datetime
-sys.path.append('/Users/giovanniflores/Development/comp578/db')
+sys.path.append(config['DB_PATH'])
 from mongo_factory import getMongo, getAuthorIDs, get_tweet_ids
 from find_date import get_time_from_tweet
 from tweet_puller import file_collector 
 import time
 
-config = dotenv_values()
 
 def auth():
     return config["BEARER_TOKEN"]
