@@ -12,7 +12,8 @@ from dotenv import dotenv_values
 import sys
 import datetime
 sys.path.append('/Users/giovanniflores/Development/comp578/db')
-from mongo_factory import getMongo, getAuthorIDs 
+from mongo_factory import getMongo, getAuthorIDs, get_tweet_ids
+from find_date import get_time_from_tweet
 from tweet_puller import pull_from_file 
 
 config = dotenv_values()
@@ -65,6 +66,8 @@ async def main():
             data = json_response['data']
             for datum in data:
                 tweet_id = datum['id']
+                created_at = get_time_from_tweet(tweet_id)
+                datum['created_at'] = created_at
                 if not datum['text'].startswith('RT'):
                     print(f'UPSERTING TWEET WITH ID {tweet_id}')
                     mongoDB.update_one({'id' : tweet_id},{'$set' : datum}, upsert=True)
@@ -74,5 +77,8 @@ async def main():
 
 
                     
-asyncio.run(main())
+async def refactor(): 
+    await get_tweet_ids()
+
+asyncio.run(refactor())
 
