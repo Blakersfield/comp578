@@ -12,8 +12,10 @@ from dotenv import dotenv_values
 import sys
 import datetime
 sys.path.append('/Users/giovanniflores/Development/comp578/db')
-from mongo_factory import getMongo, getAuthorIDs 
-from tweet_puller import pull_from_file 
+from mongo_factory import getMongo, getAuthorIDs, get_tweet_ids
+from find_date import get_time_from_tweet
+from tweet_puller import file_collector 
+import time
 
 config = dotenv_values()
 
@@ -45,18 +47,19 @@ def chink(lst, n):
     for i in range(0, len(lst), n):
         yield lst[i:i + n]
 
+
+
 async def main():
     mongoDB = await getMongo()
-    ids = pull_from_file()
+    ids = file_collector()
     bearer_token = auth()
     headers = create_headers(bearer_token=bearer_token)
     chinked_ids = chink(ids, 100)
+
     count = 1
-    REQUEST_CAP = 11
+    start = time.time()
     for id_partition in chinked_ids:
         ids_stringified = ','.join(id_partition)
-        if count == REQUEST_CAP:
-            break
         url = create_url(ids_stringified)
         print(f'\n\n\n\n\nREQUEST #{count} MADE\n\n\n\n')
         time.sleep(1)
@@ -65,14 +68,22 @@ async def main():
             data = json_response['data']
             for datum in data:
                 tweet_id = datum['id']
+                created_at = get_time_from_tweet(tweet_id)
+                datum['created_at'] = created_at
                 if not datum['text'].startswith('RT'):
                     print(f'UPSERTING TWEET WITH ID {tweet_id}')
                     mongoDB.update_one({'id' : tweet_id},{'$set' : datum}, upsert=True)
                 else:
                     print(f'DID NOT UPSERT TWEET WITH ID {tweet_id}')
         count += 1
+    
+    end = time.time()
+    print(f'total time elapsed: {str(end - start)}')
 
 
                     
+async def refactor(): 
+    await get_tweet_ids()
+
 asyncio.run(main())
 
