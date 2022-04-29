@@ -14,7 +14,7 @@ def retrieve_data(db = 'comp578',coll="Tweets"):
     client = pymongo.MongoClient(dotenv_values()["RUS_DB_URL"])
     db = client[db]
     twitter_data = db[coll]
-    return twitter_data.find().limit(10)
+    return twitter_data.find()
 
 sia = SentimentIntensityAnalyzer()
 
