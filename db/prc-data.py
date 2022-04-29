@@ -14,7 +14,7 @@ def retrieve_data(db = 'comp578',coll="Tweets"):
     client = pymongo.MongoClient(dotenv_values()["RUS_DB_URL"])
     db = client[db]
     twitter_data = db[coll]
-    return twitter_data.find()
+    return twitter_data.find().limit(10)
 
 sia = SentimentIntensityAnalyzer()
 
@@ -27,19 +27,27 @@ def analyze(text):
 #clean up the data
 data_flat['text']= data_flat['text'].apply(analyze)
 data_flat.drop(labels=['_id','author_id'],axis=1,inplace=True)
-data_flat.columns=[
-'id',
-'text',
-'created_at',
-'retweet_count',
-'reply_count',
-'like_count',
-'quote_count']
+
+col_dict = {
+    'id' : 'id',
+    'text' : 'text',
+    'created_at' : 'created_at',
+    'public_metrics.retweet_count' : 'retweet_count',
+    'public_metrics.reply_count' : 'reply_count',
+    'public_metrics.like_count' : 'like_count',
+    'public_metrics.quote_count' : 'quote_count'
+}
+
+data_flat.columns=[col_dict[x] for x in data_flat.columns]
+
+print(data_flat)
 
 #set datetime index
 date_time = pd.to_datetime(data_flat['created_at']).dt.strftime('%Y-%m-%dT%H:%M:%SZ')
 datetime_index = pd.DatetimeIndex(date_time)
 data_flat.set_index(keys=datetime_index,drop=True,inplace=True)
+
+print(data_flat)
 
 #aggregate based on day
 text_sent = data_flat['text'].resample(AGGREGATE_OFFSET).mean()
