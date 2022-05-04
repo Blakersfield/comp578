@@ -40,9 +40,9 @@ def connect_to_endpoint(url, headers):
     
     return response.json()
 
-def chink(lst, n):
+def chunk(lst, n):
     ''' 
-    partition evenly sized n-sized chinks
+    partition evenly sized n-sized chunks
     '''
     for i in range(0, len(lst), n):
         yield lst[i:i + n]
@@ -54,11 +54,11 @@ async def main():
     ids = file_collector()
     bearer_token = auth()
     headers = create_headers(bearer_token=bearer_token)
-    chinked_ids = chink(ids, 100)
+    chunked_ids = chunk(ids, 100)
 
     count = 1
     start = time.time()
-    for id_partition in chinked_ids:
+    for id_partition in chunked_ids:
         ids_stringified = ','.join(id_partition)
         url = create_url(ids_stringified)
         print(f'\n\n\n\n\nREQUEST #{count} MADE\n\n\n\n')

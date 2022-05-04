@@ -7,9 +7,9 @@ config = dotenv_values()
 
 def file_collector():
     path = config['FILE_PATH']
-    month = 2
-    start_day = 22 
-    end_day = 29 
+    month = 4
+    start_day = 4 
+    end_day = 16 
     sample_size = 0.1
     start = 1
     
